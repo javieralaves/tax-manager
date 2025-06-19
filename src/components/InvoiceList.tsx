@@ -9,7 +9,8 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import { getQuarter } from 'date-fns'
 import type { Invoice } from '@/types/invoice'
 
 export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
@@ -46,37 +47,53 @@ export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
       <TableHeader>
         <TableRow className="bg-gray-100">
           <TableHead className="p-2 text-left">Client</TableHead>
+          <TableHead className="p-2 text-left">Issue Date</TableHead>
+          <TableHead className="p-2 text-left">Quarter</TableHead>
           <TableHead className="p-2 text-left">Amount</TableHead>
           <TableHead className="p-2 text-left">Status</TableHead>
           <TableHead className="p-2 text-center">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {invoices.map((inv) => (
-          <TableRow key={inv.id} className="border-t">
-            <TableCell className="p-2">{inv.clientName}</TableCell>
-            <TableCell className="p-2">{formatCurrency(Number(inv.amount))}</TableCell>
-            <TableCell className="p-2">{inv.status}</TableCell>
-            <TableCell className="p-2 text-center">
-              <Button
-                variant="link"
-                className="text-red-600 hover:underline"
-                onClick={() => remove(inv.id)}
-              >
-                Delete
-              </Button>
-              {inv.status === 'PENDING' && (
+        {invoices.map((inv) => {
+          const q = `Q${getQuarter(new Date(inv.issueDate))}`
+          const statusColor =
+            inv.status === 'PAID'
+              ? 'bg-green-500'
+              : inv.status === 'PENDING'
+              ? 'bg-yellow-500'
+              : 'bg-red-500'
+          return (
+            <TableRow key={inv.id} className="border-t">
+              <TableCell className="p-2">{inv.clientName}</TableCell>
+              <TableCell className="p-2">{formatDate(inv.issueDate)}</TableCell>
+              <TableCell className="p-2">{q}</TableCell>
+              <TableCell className="p-2">{formatCurrency(Number(inv.amount))}</TableCell>
+              <TableCell className="p-2 flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${statusColor}`}></span>
+                {inv.status}
+              </TableCell>
+              <TableCell className="p-2 text-center">
                 <Button
                   variant="link"
-                  className="text-green-600 hover:underline ml-2"
-                  onClick={() => markPaid(inv.id)}
+                  className="text-red-600 hover:underline"
+                  onClick={() => remove(inv.id)}
                 >
-                  Mark as Paid
+                  Delete
                 </Button>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
+                {inv.status === 'PENDING' && (
+                  <Button
+                    variant="link"
+                    className="text-green-600 hover:underline ml-2"
+                    onClick={() => markPaid(inv.id)}
+                  >
+                    Mark as Paid
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          )
+        })}
       </TableBody>
     </Table>
   )

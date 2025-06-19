@@ -12,3 +12,12 @@ export function formatCurrency(amount: number): string {
     minimumFractionDigits: 2,
   }).format(amount)
 }
+
+export function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('en-US')
+}
+
+// Approximate exchange rate for converting IRPF euro brackets to USD
+export const EUR_TO_USD = 1.1
+export const USD_TO_EUR = 1 / EUR_TO_USD

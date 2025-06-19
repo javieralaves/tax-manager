@@ -1,8 +1,17 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { calculateIrpf } from '@/lib/tax'
+import { calculateIrpf, IRPF_BRACKETS } from '@/lib/tax'
+import { EUR_TO_USD, USD_TO_EUR } from '@/lib/utils'
 import {
   BarChart,
   Bar,
@@ -12,13 +21,21 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { eachMonthOfInterval, startOfYear, endOfYear, format } from 'date-fns'
+import {
+  eachMonthOfInterval,
+  startOfYear,
+  endOfYear,
+  format,
+  getQuarter,
+} from 'date-fns'
 import type { Invoice } from '@/types/invoice'
 
 export default function Dashboard() {
   const [data, setData] = useState<{ name: string; income: number; tax: number }[]>([])
   const [totalIncome, setTotalIncome] = useState(0)
   const [tax, setTax] = useState(0)
+  const [quarterly, setQuarterly] = useState<{ quarter: string; income: number; tax: number }[]>([])
+  const [nextBracketMsg, setNextBracketMsg] = useState('')
 
   useEffect(() => {
     fetch('/api/invoices')
@@ -28,10 +45,26 @@ export default function Dashboard() {
         const paid = invoices.filter(
           (i) => i.status === 'PAID' && new Date(i.issueDate).getFullYear() === year
         )
-        const income = paid.reduce((sum, i) => sum + Number(i.amount), 0)
-        setTotalIncome(income)
-        const irpf = calculateIrpf(income)
-        setTax(irpf)
+        const incomeUsd = paid.reduce((sum, i) => sum + Number(i.amount), 0)
+        setTotalIncome(incomeUsd)
+        const incomeEur = incomeUsd * USD_TO_EUR
+        const irpfEur = calculateIrpf(incomeEur)
+        const irpfUsd = irpfEur * EUR_TO_USD
+        setTax(irpfUsd)
+
+        const bracketsUsd = IRPF_BRACKETS.map((b) => ({
+          limit: b.limit * EUR_TO_USD,
+          rate: b.rate,
+        }))
+        const next = bracketsUsd.find((b) => incomeUsd < b.limit)
+        if (next) {
+          const diff = next.limit - incomeUsd
+          setNextBracketMsg(
+            `${formatCurrency(diff)} left until ${(next.rate * 100).toFixed(0)}% tax bracket.`
+          )
+        } else {
+          setNextBracketMsg('Above highest tax bracket')
+        }
 
         const months = eachMonthOfInterval({
           start: startOfYear(new Date()),
@@ -39,16 +72,29 @@ export default function Dashboard() {
         })
 
         const chart = months.map((m) => {
-          const monthIncome = paid
+          const monthIncomeUsd = paid
             .filter((inv) => new Date(inv.issueDate).getMonth() === m.getMonth())
             .reduce((sum, inv) => sum + Number(inv.amount), 0)
+          const monthIncomeEur = monthIncomeUsd * USD_TO_EUR
           return {
             name: format(m, 'MMM'),
-            income: monthIncome,
-            tax: calculateIrpf(monthIncome),
+            income: monthIncomeUsd,
+            tax: calculateIrpf(monthIncomeEur) * EUR_TO_USD,
           }
         })
         setData(chart)
+
+        const quarters = [1, 2, 3, 4].map((q) => {
+          const incomeQUsd = paid
+            .filter((inv) => getQuarter(new Date(inv.issueDate)) === q)
+            .reduce((sum, inv) => sum + Number(inv.amount), 0)
+          return {
+            quarter: `Q${q}`,
+            income: incomeQUsd,
+            tax: incomeQUsd * 0.2,
+          }
+        })
+        setQuarterly(quarters)
       })
   }, [])
 
@@ -78,6 +124,12 @@ export default function Dashboard() {
         </Card>
         <Card className="sm:col-span-3">
           <CardHeader>
+            <CardTitle>Income Until Next Bracket</CardTitle>
+          </CardHeader>
+          <CardContent>{nextBracketMsg}</CardContent>
+        </Card>
+        <Card className="sm:col-span-3">
+          <CardHeader>
             <CardTitle>Net Income After Tax</CardTitle>
           </CardHeader>
           <CardContent>{formatCurrency(net)}</CardContent>
@@ -98,6 +150,31 @@ export default function Dashboard() {
               <Bar dataKey="tax" fill="#82ca9d" name="Tax" />
             </BarChart>
           </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Quarterly Summary (20% IRPF)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Quarter</TableHead>
+                <TableHead>Income</TableHead>
+                <TableHead>Advance Tax</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {quarterly.map((q) => (
+                <TableRow key={q.quarter}>
+                  <TableCell>{q.quarter}</TableCell>
+                  <TableCell>{formatCurrency(q.income)}</TableCell>
+                  <TableCell>{formatCurrency(q.tax)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
