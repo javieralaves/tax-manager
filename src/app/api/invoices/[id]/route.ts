@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getExchangeRate } from '@/lib/utils'
 
 export async function GET(
   request: Request,
@@ -19,6 +20,19 @@ export async function PUT(
 ) {
   const { id } = await params
   const data = await request.json()
+  let amountUSD: number | undefined
+  let amountEUR: number | undefined
+  let rate: number | undefined
+  if (data.amount && data.currency) {
+    rate = await getExchangeRate(
+      data.issueDate ? new Date(data.issueDate) : new Date()
+    )
+    const amt = parseFloat(data.amount)
+    amountUSD =
+      data.currency === 'USD' ? amt : parseFloat((amt * rate).toFixed(2))
+    amountEUR =
+      data.currency === 'EUR' ? amt : parseFloat((amt / rate).toFixed(2))
+  }
   const invoice = await prisma.invoice.update({
     where: { id },
     data: {
@@ -26,7 +40,10 @@ export async function PUT(
       clientEmail: data.clientEmail,
       issueDate: data.issueDate ? new Date(data.issueDate) : undefined,
       dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-      amount: data.amount,
+      currency: data.currency,
+      amountUSD,
+      amountEUR,
+      exchangeRate: rate,
       taxRate: data.taxRate,
       status: data.status,
     },

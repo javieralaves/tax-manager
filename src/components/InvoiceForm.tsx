@@ -4,6 +4,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
 
 export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
   const [form, setForm] = useState({
@@ -12,10 +19,13 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     issueDate: '',
     dueDate: '',
     amount: '',
+    currency: 'USD',
     status: 'PAID',
   })
   const [loading, setLoading] = useState(false)
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
   const submit = async (e: React.FormEvent) => {
@@ -36,6 +46,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
       issueDate: '',
       dueDate: '',
       amount: '',
+      currency: 'USD',
       status: 'PAID',
     })
     onSuccess()
@@ -102,6 +113,18 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
             placeholder="Amount"
             required
           />
+        </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="currency">Currency</Label>
+          <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
+            <SelectTrigger id="currency" name="currency">
+              <SelectValue placeholder="Currency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="flex items-center gap-2">
