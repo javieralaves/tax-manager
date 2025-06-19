@@ -11,7 +11,6 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     issueDate: '',
     dueDate: '',
     amount: '',
-    taxRate: '0',
   })
   const [loading, setLoading] = useState(false)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,11 +25,10 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
       body: JSON.stringify({
         ...form,
         amount: parseFloat(form.amount),
-        taxRate: parseFloat(form.taxRate),
       }),
     })
     setLoading(false)
-    setForm({ clientName: '', clientEmail: '', issueDate: '', dueDate: '', amount: '', taxRate: '0' })
+    setForm({ clientName: '', clientEmail: '', issueDate: '', dueDate: '', amount: '' })
     onSuccess()
   }
   return (
@@ -94,18 +92,6 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
             onChange={handleChange}
             placeholder="Amount"
             required
-          />
-        </div>
-        <div className="flex flex-1 flex-col gap-1">
-          <Label htmlFor="taxRate">Tax Rate</Label>
-          <Input
-            id="taxRate"
-            type="number"
-            step="0.01"
-            name="taxRate"
-            value={form.taxRate}
-            onChange={handleChange}
-            placeholder="Tax Rate"
           />
         </div>
       </div>
