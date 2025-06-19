@@ -9,17 +9,8 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-
-export type Invoice = {
-  id: string
-  clientName: string
-  clientEmail: string | null
-  issueDate: string
-  dueDate: string
-  amount: string
-  taxRate: number
-  status: string
-}
+import { formatCurrency } from '@/lib/utils'
+import type { Invoice } from '@/types/invoice'
 
 export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -32,6 +23,20 @@ export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
   const remove = async (id: string) => {
     await fetch(`/api/invoices/${id}`, { method: 'DELETE' })
     setInvoices((prev) => prev.filter((i) => i.id !== id))
+  }
+
+  const markPaid = async (id: string) => {
+    const res = await fetch(`/api/invoices/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'PAID' }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setInvoices((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, status: updated.status } : i))
+      )
+    }
   }
 
   if (!invoices.length) return <p>No invoices yet.</p>
@@ -50,7 +55,7 @@ export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
         {invoices.map((inv) => (
           <TableRow key={inv.id} className="border-t">
             <TableCell className="p-2">{inv.clientName}</TableCell>
-            <TableCell className="p-2">{inv.amount}</TableCell>
+            <TableCell className="p-2">{formatCurrency(Number(inv.amount))}</TableCell>
             <TableCell className="p-2">{inv.status}</TableCell>
             <TableCell className="p-2 text-center">
               <Button
@@ -60,6 +65,15 @@ export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
               >
                 Delete
               </Button>
+              {inv.status === 'PENDING' && (
+                <Button
+                  variant="link"
+                  className="text-green-600 hover:underline ml-2"
+                  onClick={() => markPaid(inv.id)}
+                >
+                  Mark as Paid
+                </Button>
+              )}
             </TableCell>
           </TableRow>
         ))}
