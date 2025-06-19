@@ -1,5 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
   const [form, setForm] = useState({
@@ -31,66 +34,84 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     onSuccess()
   }
   return (
-    <form onSubmit={submit} className="space-y-2 border p-4 rounded">
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          name="clientName"
-          value={form.clientName}
-          onChange={handleChange}
-          placeholder="Client Name"
-          required
-          className="border p-2 rounded flex-1"
-        />
-        <input
-          name="clientEmail"
-          value={form.clientEmail}
-          onChange={handleChange}
-          placeholder="Client Email"
-          className="border p-2 rounded flex-1"
-        />
+    <form onSubmit={submit} className="space-y-4 border p-4 rounded">
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="clientName">Client Name</Label>
+          <Input
+            id="clientName"
+            name="clientName"
+            value={form.clientName}
+            onChange={handleChange}
+            placeholder="Client Name"
+            required
+          />
+        </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="clientEmail">Client Email</Label>
+          <Input
+            id="clientEmail"
+            name="clientEmail"
+            value={form.clientEmail}
+            onChange={handleChange}
+            placeholder="Client Email"
+          />
+        </div>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="date"
-          name="issueDate"
-          value={form.issueDate}
-          onChange={handleChange}
-          required
-          className="border p-2 rounded flex-1"
-        />
-        <input
-          type="date"
-          name="dueDate"
-          value={form.dueDate}
-          onChange={handleChange}
-          required
-          className="border p-2 rounded flex-1"
-        />
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="issueDate">Issue Date</Label>
+          <Input
+            id="issueDate"
+            type="date"
+            name="issueDate"
+            value={form.issueDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="dueDate">Due Date</Label>
+          <Input
+            id="dueDate"
+            type="date"
+            name="dueDate"
+            value={form.dueDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="number"
-          step="0.01"
-          name="amount"
-          value={form.amount}
-          onChange={handleChange}
-          placeholder="Amount"
-          required
-          className="border p-2 rounded flex-1"
-        />
-        <input
-          type="number"
-          step="0.01"
-          name="taxRate"
-          value={form.taxRate}
-          onChange={handleChange}
-          placeholder="Tax Rate"
-          className="border p-2 rounded flex-1"
-        />
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="amount">Amount</Label>
+          <Input
+            id="amount"
+            type="number"
+            step="0.01"
+            name="amount"
+            value={form.amount}
+            onChange={handleChange}
+            placeholder="Amount"
+            required
+          />
+        </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <Label htmlFor="taxRate">Tax Rate</Label>
+          <Input
+            id="taxRate"
+            type="number"
+            step="0.01"
+            name="taxRate"
+            value={form.taxRate}
+            onChange={handleChange}
+            placeholder="Tax Rate"
+          />
+        </div>
       </div>
-      <button type="submit" disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">
+      <Button type="submit" disabled={loading}>
         {loading ? 'Saving...' : 'Create Invoice'}
-      </button>
+      </Button>
     </form>
   )
 }

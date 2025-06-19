@@ -1,5 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 
 export type Invoice = {
   id: string
@@ -28,32 +37,33 @@ export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
   if (!invoices.length) return <p>No invoices yet.</p>
 
   return (
-    <table className="w-full border mt-4">
-      <thead>
-        <tr className="bg-gray-100">
-          <th className="p-2 text-left">Client</th>
-          <th className="p-2 text-left">Amount</th>
-          <th className="p-2 text-left">Status</th>
-          <th className="p-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table className="border mt-4">
+      <TableHeader>
+        <TableRow className="bg-gray-100">
+          <TableHead className="p-2 text-left">Client</TableHead>
+          <TableHead className="p-2 text-left">Amount</TableHead>
+          <TableHead className="p-2 text-left">Status</TableHead>
+          <TableHead className="p-2 text-center">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {invoices.map((inv) => (
-          <tr key={inv.id} className="border-t">
-            <td className="p-2">{inv.clientName}</td>
-            <td className="p-2">{inv.amount}</td>
-            <td className="p-2">{inv.status}</td>
-            <td className="p-2 text-center">
-              <button
-                onClick={() => remove(inv.id)}
+          <TableRow key={inv.id} className="border-t">
+            <TableCell className="p-2">{inv.clientName}</TableCell>
+            <TableCell className="p-2">{inv.amount}</TableCell>
+            <TableCell className="p-2">{inv.status}</TableCell>
+            <TableCell className="p-2 text-center">
+              <Button
+                variant="link"
                 className="text-red-600 hover:underline"
+                onClick={() => remove(inv.id)}
               >
                 Delete
-              </button>
-            </td>
-          </tr>
+              </Button>
+            </TableCell>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }
