@@ -68,7 +68,14 @@ export default function InvoiceList({ refreshKey }: { refreshKey: number }) {
               <TableCell className="p-2">{inv.clientName}</TableCell>
               <TableCell className="p-2">{formatDate(inv.issueDate)}</TableCell>
               <TableCell className="p-2">{q}</TableCell>
-              <TableCell className="p-2">{formatCurrency(Number(inv.amount))}</TableCell>
+              <TableCell className="p-2">
+                {formatCurrency(
+                  Number(
+                    inv.currency === 'USD' ? inv.amountUSD : inv.amountEUR
+                  ),
+                  inv.currency as 'USD' | 'EUR'
+                )}
+              </TableCell>
               <TableCell className="p-2 flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full ${statusColor}`}></span>
                 {inv.status}

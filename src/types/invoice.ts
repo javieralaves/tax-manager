@@ -4,7 +4,10 @@ export type Invoice = {
   clientEmail: string | null
   issueDate: string
   dueDate: string
-  amount: string
+  currency: 'USD' | 'EUR'
+  amountUSD: string
+  amountEUR: string
+  exchangeRate: number
   taxRate: number
   status: string
 }
