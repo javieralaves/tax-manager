@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Toggle } from '@/components/ui/toggle'
+import { Switch } from '@/components/ui/switch'
 
 export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
   const [form, setForm] = useState({
@@ -41,7 +41,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     onSuccess()
   }
   return (
-    <form onSubmit={submit} className="space-y-4 border p-4 rounded">
+    <form onSubmit={submit} className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex flex-1 flex-col gap-1">
           <Label htmlFor="clientName">Client Name</Label>
@@ -105,11 +105,11 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Toggle
+        <Switch
           id="status"
-          pressed={form.status === 'PAID'}
-          onPressedChange={(pressed) =>
-            setForm({ ...form, status: pressed ? 'PAID' : 'PENDING' })
+          checked={form.status === 'PAID'}
+          onCheckedChange={(checked) =>
+            setForm({ ...form, status: checked ? 'PAID' : 'PENDING' })
           }
           aria-label="Mark as paid"
         />
