@@ -1,0 +1,30 @@
+// Prisma schema
+// Defines PostgreSQL datasource and Invoice model for invoice management
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Invoice {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  clientName  String
+  clientEmail String?
+  issueDate   DateTime
+  dueDate     DateTime
+  amount      Decimal   @db.Decimal(10,2)
+  taxRate     Float
+  status      InvoiceStatus @default(PENDING)
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+}

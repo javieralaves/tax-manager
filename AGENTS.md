@@ -18,6 +18,7 @@ The goal is to provide full autonomy and transparency without relying on externa
 - **Components**: shadcn/ui
 - **Deployment**: Vercel
 
+Prisma is now configured with a basic `Invoice` model under `/prisma`. Run `npx prisma migrate dev` after setting `DATABASE_URL` to initialize the database.
 Not all dependencies might be installed right away. Tech stack is gradually implemented as features are developed.
 
 ## Guidelines
