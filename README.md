@@ -23,6 +23,16 @@ Prisma is used for database access. Copy `.env.example` to `.env` and adjust the
 npx prisma migrate dev --name init
 ```
 
+### Building for production
+
+Before deploying, generate the Prisma client and build the app:
+
+```bash
+npm run build
+```
+
+The `build` script runs `prisma generate` automatically so the latest client is included in your production bundle.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
