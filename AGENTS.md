@@ -10,15 +10,13 @@ The goal is to provide full autonomy and transparency without relying on externa
 
 - **Framework**: Next.js (with React)
 - **Styling**: Tailwind CSS
-- **Database**: PostgreSQL (via Prisma ORM)
+- **Database**: PostgreSQL (via Prisma)
 - **Authentication**: NextAuth
 - **PDF Export**: react-pdf (or similar)
-- **Form Handling**: React Hook Form
 - **Data Visualization**: Recharts
 - **Components**: shadcn/ui
 - **Deployment**: Vercel
 
-Prisma is now configured with a basic `Invoice` model under `/prisma`. Run `npx prisma migrate dev` after setting `DATABASE_URL` to initialize the database.
 Not all dependencies might be installed right away. Tech stack is gradually implemented as features are developed.
 
 ## Guidelines
@@ -30,7 +28,7 @@ When writing code, please follow these principles:
 - Keep code clean, readable, and commented.
 - Follow Next.js file structure conventions.
 - Optimize for performance and accessibility.
-- Import components and default styles from shadcn/ui as much as possible.
+- Utilize shadcn/ui components as much as possible (src/components/ui).
 - Make any necessary adjustments to this AGENTS.md as we make progress.
 
 ## Feature Prioritization
@@ -58,7 +56,7 @@ Phase 5: Annual summaries (Modelo 100 & 390)
 
 Next.js App Router setup for pages and styling implementation
 
-/components for reusable UI components
+/components for reusable UI components (pre-installed on src/components/ui)
 /api for backend API endpoints
 /lib for utilities, helpers, etc.
 /prisma for DB schema and seed files
