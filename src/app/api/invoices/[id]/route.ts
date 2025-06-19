@@ -34,6 +34,19 @@ export async function PUT(
   return NextResponse.json(invoice)
 }
 
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const { status } = await request.json()
+  const invoice = await prisma.invoice.update({
+    where: { id },
+    data: { status },
+  })
+  return NextResponse.json(invoice)
+}
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
