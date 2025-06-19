@@ -1,11 +1,12 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const invoice = await prisma.invoice.findUnique({ where: { id: params.id } })
+  const { id } = await params
+  const invoice = await prisma.invoice.findUnique({ where: { id } })
   if (!invoice) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
@@ -13,12 +14,13 @@ export async function GET(
 }
 
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const data = await request.json()
   const invoice = await prisma.invoice.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       clientName: data.clientName,
       clientEmail: data.clientEmail,
@@ -33,9 +35,10 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  await prisma.invoice.delete({ where: { id: params.id } })
+  const { id } = await params
+  await prisma.invoice.delete({ where: { id } })
   return NextResponse.json({})
 }
