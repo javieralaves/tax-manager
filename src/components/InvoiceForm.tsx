@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Toggle } from '@/components/ui/toggle'
 
 export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
   const [form, setForm] = useState({
@@ -11,6 +12,7 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     issueDate: '',
     dueDate: '',
     amount: '',
+    status: 'PAID',
   })
   const [loading, setLoading] = useState(false)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +30,14 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
       }),
     })
     setLoading(false)
-    setForm({ clientName: '', clientEmail: '', issueDate: '', dueDate: '', amount: '' })
+    setForm({
+      clientName: '',
+      clientEmail: '',
+      issueDate: '',
+      dueDate: '',
+      amount: '',
+      status: 'PAID',
+    })
     onSuccess()
   }
   return (
@@ -94,6 +103,17 @@ export default function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
             required
           />
         </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Toggle
+          id="status"
+          pressed={form.status === 'PAID'}
+          onPressedChange={(pressed) =>
+            setForm({ ...form, status: pressed ? 'PAID' : 'PENDING' })
+          }
+          aria-label="Mark as paid"
+        />
+        <Label htmlFor="status">Mark as paid</Label>
       </div>
       <Button type="submit" disabled={loading}>
         {loading ? 'Saving...' : 'Create Invoice'}
