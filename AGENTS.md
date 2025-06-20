@@ -35,6 +35,7 @@ When writing code, please follow these principles:
 
 - Ensure financial accuracy in all calculations (especially taxes).
 - Build with expandability in mind (multi-user, SaaS in the future).
+- Support invoices in multiple currencies (USD and EUR).
 
 ## AI-Driven Requests
 
