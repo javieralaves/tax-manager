@@ -60,7 +60,6 @@ export async function POST(request: Request) {
       amountUSD,
       amountEUR,
       exchangeRate: rate,
-      taxRate: data.taxRate ?? 0,
       status: data.status ?? 'PENDING',
     },
   })

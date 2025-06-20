@@ -8,6 +8,5 @@ export type Invoice = {
   amountUSD: string
   amountEUR: string
   exchangeRate: number
-  taxRate: number
   status: string
 }

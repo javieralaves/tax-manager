@@ -44,7 +44,6 @@ export async function PUT(
       amountUSD,
       amountEUR,
       exchangeRate: rate,
-      taxRate: data.taxRate,
       status: data.status,
     },
   })
