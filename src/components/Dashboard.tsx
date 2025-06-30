@@ -10,7 +10,12 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
-import { calculateIrpf, IRPF_BRACKETS } from '@/lib/tax'
+import {
+  calculateIrpf,
+  calculateIrpfBreakdown,
+  IRPF_BRACKETS,
+  type IrpfBreakdownEntry,
+} from '@/lib/tax'
 import {
   Select,
   SelectTrigger,
@@ -44,6 +49,9 @@ export default function Dashboard() {
   const [nextBracketMsg, setNextBracketMsg] = useState('')
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [breakdown, setBreakdown] = useState<IrpfBreakdownEntry[]>([])
+  const [advancePaid, setAdvancePaid] = useState(0)
+  const [finalBalance, setFinalBalance] = useState(0)
 
   useEffect(() => {
     fetch('/api/invoices')
@@ -67,6 +75,20 @@ export default function Dashboard() {
     const taxEur = calculateIrpf(totalEur)
     const taxVal = currency === 'USD' ? taxEur * avgRate : taxEur
     setTax(taxVal)
+
+    const bd = calculateIrpfBreakdown(totalEur).map((b) => ({
+      ...b,
+      from: currency === 'USD' ? b.from * avgRate : b.from,
+      to: currency === 'USD' ? b.to * avgRate : b.to,
+      taxable: currency === 'USD' ? b.taxable * avgRate : b.taxable,
+      tax: currency === 'USD' ? b.tax * avgRate : b.tax,
+    }))
+    setBreakdown(bd)
+
+    const advance = totalEur * 0.2
+    setAdvancePaid(currency === 'USD' ? advance * avgRate : advance)
+    const balance = taxEur - advance
+    setFinalBalance(currency === 'USD' ? balance * avgRate : balance)
 
     const brackets = IRPF_BRACKETS.map((b) => ({
       limit: currency === 'USD' ? b.limit * avgRate : b.limit,
@@ -213,6 +235,44 @@ export default function Dashboard() {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Year-End Tax Bracket Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Bracket</TableHead>
+                <TableHead>Taxable</TableHead>
+                <TableHead>Rate</TableHead>
+                <TableHead>Tax</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {breakdown.map((b, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    {`${formatCurrency(b.from, currency)} - ${formatCurrency(b.to, currency)}`}
+                  </TableCell>
+                  <TableCell>{formatCurrency(b.taxable, currency)}</TableCell>
+                  <TableCell>{(b.rate * 100).toFixed(0)}%</TableCell>
+                  <TableCell>{formatCurrency(b.tax, currency)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <div className="mt-4 space-y-1 text-sm">
+            <p>Final IRPF Liability: {formatCurrency(tax, currency)}</p>
+            <p>Quarterly Advances Paid: {formatCurrency(advancePaid, currency)}</p>
+            <p className="font-semibold">
+              {finalBalance >= 0
+                ? `Balance Due: ${formatCurrency(finalBalance, currency)}`
+                : `Refund: ${formatCurrency(Math.abs(finalBalance), currency)}`}
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

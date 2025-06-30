@@ -22,3 +22,33 @@ export function calculateIrpf(income: number): number {
   }
   return tax
 }
+
+export type IrpfBreakdownEntry = {
+  from: number
+  to: number
+  rate: number
+  taxable: number
+  tax: number
+}
+
+/**
+ * Returns detailed IRPF amounts per bracket for the given income.
+ * Useful for displaying how much income is taxed at each rate.
+ */
+export function calculateIrpfBreakdown(income: number): IrpfBreakdownEntry[] {
+  const breakdown: IrpfBreakdownEntry[] = []
+  let previous = 0
+  for (const { limit, rate } of IRPF_BRACKETS) {
+    if (income <= previous) break
+    const taxable = Math.min(income, limit) - previous
+    breakdown.push({
+      from: previous,
+      to: limit,
+      rate,
+      taxable,
+      tax: taxable * rate,
+    })
+    previous = limit
+  }
+  return breakdown
+}
