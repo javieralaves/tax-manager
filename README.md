@@ -68,7 +68,7 @@ The dashboard also displays your total annual and monthly tax burden (IRPF + Soc
 
 ## Modelo 130 quarterly filings
 
-Quarterly income is now grouped to estimate IRPF advances (20% of net income after deductions). Logic lives in `src/lib/modelo130.ts` and the dashboard lists each quarter's expected payment.
+Quarterly income is now grouped to estimate IRPF advances (20% of net income after deductions). Logic lives in `src/lib/modelo130.ts` and the dashboard lists each quarter's expected payment. The dashboard prioritizes the current quarter's totals and required payment, while yearly summaries and charts are tucked into an expandable section for reference.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

@@ -80,3 +80,9 @@ Next.js App Router setup for pages and styling implementation
 - **External APIs**: currency rates are fetched from `https://api.exchangerate.host`.
 - **Naming conventions**: React components in `PascalCase`, utility functions in `camelCase`.
 - **Checks**: run `npm run lint` before committing if files change.
+
+## UI Structure Notes
+
+- Top-level on the dashboard only show this quarter's income, general deduction, Social Security, IRPF advance (Modelo 130) and net take-home.
+- Yearly totals, bracket breakdowns and other reference data are hidden in an accordion/tab section.
+- All displayed values must call helpers in `src/lib` for calculations (no inline math beyond formatting).
