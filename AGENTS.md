@@ -73,6 +73,8 @@ Next.js App Router setup for pages and styling implementation
 - **Data flow**: invoices are submitted via `/api/invoices` routes and stored with Prisma. The dashboard fetches them and runs the calculations found in `src/lib/tax.ts` and `src/lib/socialSecurity.ts`.
 - The general expense helper lives in `src/lib/deductions.ts` and is applied before Social Security and IRPF are calculated.
 - Taxable income = net revenue - general expenses - Social Security.
+- IRPF is now calculated in two parts: state rates and Madrid regional rates.
+  Regional logic lives in `src/lib/tax.ts` with a helper to select the region.
 - **External APIs**: currency rates are fetched from `https://api.exchangerate.host`.
 - **Naming conventions**: React components in `PascalCase`, utility functions in `camelCase`.
 - **Checks**: run `npm run lint` before committing if files change.
