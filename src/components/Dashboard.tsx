@@ -10,6 +10,7 @@ import {
   TableCell,
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
+import { calculateTakeHome, getTaxBreakdown } from '@/lib/taxSummary'
 import {
   calculateStateIrpf,
   calculateRegionalIrpfMadrid,
@@ -35,6 +36,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
 } from 'recharts'
 import {
   eachMonthOfInterval,
@@ -191,8 +194,11 @@ export default function Dashboard() {
     setQuarterly(quarters)
   }, [invoices, currency])
 
-  const net = totalIncome - generalExpenses - ssAnnual - tax
-  const rate = totalIncome ? (tax / totalIncome) * 100 : 0
+  const summary = calculateTakeHome(totalIncome, tax, ssAnnual)
+  const net = summary.takeHomeAnnual
+  const rate = summary.effectiveRate * 100
+  const taxBurdenMonthly = summary.monthlyTax
+  const takeHomeMonthly = summary.takeHomeMonthly
 
   return (
     <div className="space-y-4">
@@ -268,6 +274,24 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>{formatCurrency(ssAnnual, currency)}</CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Tax Burden (Annual)</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(summary.totalTax, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Tax Burden (Monthly)</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(taxBurdenMonthly, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Take-Home Income (Monthly)</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(takeHomeMonthly, currency)}</CardContent>
+        </Card>
         <Card className="sm:col-span-3">
           <CardHeader>
             <CardTitle>Income Until Next Bracket</CardTitle>
@@ -282,7 +306,7 @@ export default function Dashboard() {
         </Card>
         <Card className="sm:col-span-3">
           <CardHeader>
-            <CardTitle>Net Income After Tax</CardTitle>
+            <CardTitle>Take-Home Income (Annual)</CardTitle>
           </CardHeader>
           <CardContent>{formatCurrency(net, currency)}</CardContent>
         </Card>
@@ -303,6 +327,19 @@ export default function Dashboard() {
               <Bar dataKey="income" fill="#8884d8" name="Income" />
               <Bar dataKey="tax" fill="#82ca9d" name="Tax" />
             </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tax vs Take-Home</CardTitle>
+        </CardHeader>
+        <CardContent className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Tooltip formatter={(value: number) => formatCurrency(value as number, currency)} />
+              <Pie data={getTaxBreakdown(totalIncome, tax, ssAnnual)} dataKey="value" nameKey="name" outerRadius={80} fill="#8884d8" label />
+            </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

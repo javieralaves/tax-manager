@@ -62,6 +62,10 @@ IRPF is calculated using separate national and regional brackets. Madrid's 2024/
 
 The dashboard now shows state IRPF, Madrid regional IRPF and the combined total.
 
+## Tax summary and take-home visualization
+
+The dashboard also displays your total annual and monthly tax burden (IRPF + Social Security), effective tax rate and take-home income. A donut chart illustrates how income splits between taxes and what you keep. Calculations live in `src/lib/taxSummary.ts`.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
