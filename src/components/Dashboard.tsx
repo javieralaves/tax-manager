@@ -16,6 +16,7 @@ import {
   IRPF_BRACKETS,
   type IrpfBreakdownEntry,
 } from '@/lib/tax'
+import { calculateSocialSecurityQuota } from '@/lib/socialSecurity'
 import {
   Select,
   SelectTrigger,
@@ -52,6 +53,9 @@ export default function Dashboard() {
   const [breakdown, setBreakdown] = useState<IrpfBreakdownEntry[]>([])
   const [advancePaid, setAdvancePaid] = useState(0)
   const [finalBalance, setFinalBalance] = useState(0)
+  const [ssMonthly, setSsMonthly] = useState(0)
+  const [ssAnnual, setSsAnnual] = useState(0)
+  const [ssNextMsg, setSsNextMsg] = useState('')
 
   useEffect(() => {
     fetch('/api/invoices')
@@ -89,6 +93,16 @@ export default function Dashboard() {
     setAdvancePaid(currency === 'USD' ? advance * avgRate : advance)
     const balance = taxEur - advance
     setFinalBalance(currency === 'USD' ? balance * avgRate : balance)
+
+    const ss = calculateSocialSecurityQuota(totalEur)
+    setSsMonthly(currency === 'USD' ? ss.monthly * avgRate : ss.monthly)
+    setSsAnnual(currency === 'USD' ? ss.annual * avgRate : ss.annual)
+    if (ss.toNextBand !== null) {
+      const diff = currency === 'USD' ? ss.toNextBand * avgRate : ss.toNextBand
+      setSsNextMsg(`${formatCurrency(diff, currency)} left until next SS band.`)
+    } else {
+      setSsNextMsg('Above highest SS quota band')
+    }
 
     const brackets = IRPF_BRACKETS.map((b) => ({
       limit: currency === 'USD' ? b.limit * avgRate : b.limit,
@@ -180,11 +194,29 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>{rate.toFixed(2)}%</CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>SS Monthly Quota</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(ssMonthly, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Annual SS Total</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(ssAnnual, currency)}</CardContent>
+        </Card>
         <Card className="sm:col-span-3">
           <CardHeader>
             <CardTitle>Income Until Next Bracket</CardTitle>
           </CardHeader>
           <CardContent>{nextBracketMsg}</CardContent>
+        </Card>
+        <Card className="sm:col-span-3">
+          <CardHeader>
+            <CardTitle>SS Band Info</CardTitle>
+          </CardHeader>
+          <CardContent>{ssNextMsg}</CardContent>
         </Card>
         <Card className="sm:col-span-3">
           <CardHeader>
