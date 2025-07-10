@@ -17,6 +17,7 @@ import {
   type IrpfBreakdownEntry,
 } from '@/lib/tax'
 import { calculateSocialSecurityQuota } from '@/lib/socialSecurity'
+import { calculateGeneralExpenses } from '@/lib/deductions'
 import {
   Select,
   SelectTrigger,
@@ -56,6 +57,9 @@ export default function Dashboard() {
   const [ssMonthly, setSsMonthly] = useState(0)
   const [ssAnnual, setSsAnnual] = useState(0)
   const [ssNextMsg, setSsNextMsg] = useState('')
+  const [generalExpenses, setGeneralExpenses] = useState(0)
+  const [ssBase, setSsBase] = useState(0)
+  const [taxableIncome, setTaxableIncome] = useState(0)
 
   useEffect(() => {
     fetch('/api/invoices')
@@ -76,11 +80,35 @@ export default function Dashboard() {
     const total = currency === 'USD' ? totalUsd : totalEur
     setTotalIncome(total)
 
-    const taxEur = calculateIrpf(totalEur)
+    const generalEur = calculateGeneralExpenses(totalEur)
+    const generalCur = currency === 'USD' ? generalEur * avgRate : generalEur
+    setGeneralExpenses(generalCur)
+
+    const ssBaseEur = totalEur - generalEur
+    const ssBaseCur = currency === 'USD' ? ssBaseEur * avgRate : ssBaseEur
+    setSsBase(ssBaseCur)
+
+    const ss = calculateSocialSecurityQuota(ssBaseEur)
+    const ssMonthlyCur = currency === 'USD' ? ss.monthly * avgRate : ss.monthly
+    const ssAnnualCur = currency === 'USD' ? ss.annual * avgRate : ss.annual
+    setSsMonthly(ssMonthlyCur)
+    setSsAnnual(ssAnnualCur)
+    if (ss.toNextBand !== null) {
+      const diff = currency === 'USD' ? ss.toNextBand * avgRate : ss.toNextBand
+      setSsNextMsg(`${formatCurrency(diff, currency)} left until next SS band.`)
+    } else {
+      setSsNextMsg('Above highest SS quota band')
+    }
+
+    const taxableEur = ssBaseEur - ss.annual
+    const taxableCur = currency === 'USD' ? taxableEur * avgRate : taxableEur
+    setTaxableIncome(taxableCur)
+
+    const taxEur = calculateIrpf(taxableEur)
     const taxVal = currency === 'USD' ? taxEur * avgRate : taxEur
     setTax(taxVal)
 
-    const bd = calculateIrpfBreakdown(totalEur).map((b) => ({
+    const bd = calculateIrpfBreakdown(taxableEur).map((b) => ({
       ...b,
       from: currency === 'USD' ? b.from * avgRate : b.from,
       to: currency === 'USD' ? b.to * avgRate : b.to,
@@ -89,28 +117,18 @@ export default function Dashboard() {
     }))
     setBreakdown(bd)
 
-    const advance = totalEur * 0.2
+    const advance = taxableEur * 0.2
     setAdvancePaid(currency === 'USD' ? advance * avgRate : advance)
     const balance = taxEur - advance
     setFinalBalance(currency === 'USD' ? balance * avgRate : balance)
-
-    const ss = calculateSocialSecurityQuota(totalEur)
-    setSsMonthly(currency === 'USD' ? ss.monthly * avgRate : ss.monthly)
-    setSsAnnual(currency === 'USD' ? ss.annual * avgRate : ss.annual)
-    if (ss.toNextBand !== null) {
-      const diff = currency === 'USD' ? ss.toNextBand * avgRate : ss.toNextBand
-      setSsNextMsg(`${formatCurrency(diff, currency)} left until next SS band.`)
-    } else {
-      setSsNextMsg('Above highest SS quota band')
-    }
 
     const brackets = IRPF_BRACKETS.map((b) => ({
       limit: currency === 'USD' ? b.limit * avgRate : b.limit,
       rate: b.rate,
     }))
-    const next = brackets.find((b) => total < b.limit)
+    const next = brackets.find((b) => taxableCur < b.limit)
     if (next) {
-      const diff = next.limit - total
+      const diff = next.limit - taxableCur
       setNextBracketMsg(
         `${formatCurrency(diff, currency)} left until ${(next.rate * 100).toFixed(0)}% tax bracket.`
       )
@@ -159,7 +177,7 @@ export default function Dashboard() {
     setQuarterly(quarters)
   }, [invoices, currency])
 
-  const net = totalIncome - tax
+  const net = totalIncome - generalExpenses - ssAnnual - tax
   const rate = totalIncome ? (tax / totalIncome) * 100 : 0
 
   return (
@@ -181,6 +199,24 @@ export default function Dashboard() {
             <CardTitle>Total Income</CardTitle>
           </CardHeader>
           <CardContent>{formatCurrency(totalIncome, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>General Expenses (5%)</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(generalExpenses, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>SS Base Income</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(ssBase, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Taxable Income</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(taxableIncome, currency)}</CardContent>
         </Card>
         <Card>
           <CardHeader>

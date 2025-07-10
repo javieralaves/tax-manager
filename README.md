@@ -37,6 +37,16 @@ The `build` script runs `prisma generate` automatically so the latest client is 
 
 This project now includes a helper to estimate Social Security (Seguridad Social) contributions for Spanish autónomos. The logic lives in `src/lib/socialSecurity.ts` and is used in the dashboard to show the current monthly quota, annual total and how far you are from the next band.
 
+## General expense deduction
+
+Official general expenses are now calculated with `src/lib/deductions.ts`. The deduction is 5% of net revenues capped at €2,000 per year. Taxable income is computed as:
+
+```
+net revenue → - general expenses → - Social Security → taxable income
+```
+
+Both IRPF and Social Security calculations rely on this pipeline.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
