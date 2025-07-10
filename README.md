@@ -33,6 +33,10 @@ npm run build
 
 The `build` script runs `prisma generate` automatically so the latest client is included in your production bundle.
 
+## Social Security calculations
+
+This project now includes a helper to estimate Social Security (Seguridad Social) contributions for Spanish autónomos. The logic lives in `src/lib/socialSecurity.ts` and is used in the dashboard to show the current monthly quota, annual total and how far you are from the next band.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
