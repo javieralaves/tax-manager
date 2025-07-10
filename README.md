@@ -47,6 +47,21 @@ net revenue → - general expenses → - Social Security → taxable income
 
 Both IRPF and Social Security calculations rely on this pipeline.
 
+### IRPF split into state and regional portions
+
+IRPF is calculated using separate national and regional brackets. Madrid's 2024/2025 regional rates are built in by default:
+
+| Bracket up to (€) | State Rate | Madrid Rate |
+| ---------------- | ---------- | ----------- |
+| 12,450           | 19%        | 8.5%        |
+| 17,707           | 24%        | 9.5%        |
+| 33,407           | 30%        | 12%         |
+| 53,407           | 37%        | 18.5%       |
+| 240,000          | 45%        | 21.5%       |
+| ∞                | 47%        | 23.5%       |
+
+The dashboard now shows state IRPF, Madrid regional IRPF and the combined total.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

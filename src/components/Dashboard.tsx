@@ -11,7 +11,9 @@ import {
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
 import {
-  calculateIrpf,
+  calculateStateIrpf,
+  calculateRegionalIrpfMadrid,
+  getRegionalIrpfCalculator,
   calculateIrpfBreakdown,
   IRPF_BRACKETS,
   type IrpfBreakdownEntry,
@@ -46,6 +48,8 @@ import type { Invoice } from '@/types/invoice'
 export default function Dashboard() {
   const [data, setData] = useState<{ name: string; income: number; tax: number }[]>([])
   const [totalIncome, setTotalIncome] = useState(0)
+  const [stateTax, setStateTax] = useState(0)
+  const [regionalTax, setRegionalTax] = useState(0)
   const [tax, setTax] = useState(0)
   const [quarterly, setQuarterly] = useState<{ quarter: string; income: number; tax: number }[]>([])
   const [nextBracketMsg, setNextBracketMsg] = useState('')
@@ -104,7 +108,13 @@ export default function Dashboard() {
     const taxableCur = currency === 'USD' ? taxableEur * avgRate : taxableEur
     setTaxableIncome(taxableCur)
 
-    const taxEur = calculateIrpf(taxableEur)
+    const state = calculateStateIrpf(taxableEur)
+    const regional = getRegionalIrpfCalculator('madrid')(taxableEur)
+    const taxEur = state.total + regional.total
+    setStateTax(currency === 'USD' ? state.total * avgRate : state.total)
+    setRegionalTax(
+      currency === 'USD' ? regional.total * avgRate : regional.total,
+    )
     const taxVal = currency === 'USD' ? taxEur * avgRate : taxEur
     setTax(taxVal)
 
@@ -149,9 +159,13 @@ export default function Dashboard() {
         .filter((inv) => new Date(inv.issueDate).getMonth() === m.getMonth())
         .reduce((sum, inv) => sum + Number(inv.amountEUR), 0)
       const monthIncome = currency === 'USD' ? monthUsd : monthEur
-      const taxMonth = currency === 'USD'
-        ? calculateIrpf(monthEur) * (monthEur ? monthUsd / monthEur : avgRate)
-        : calculateIrpf(monthEur)
+      const monthState = calculateStateIrpf(monthEur).total
+      const monthRegional = calculateRegionalIrpfMadrid(monthEur).total
+      const monthTotal = monthState + monthRegional
+      const taxMonth =
+        currency === 'USD'
+          ? monthTotal * (monthEur ? monthUsd / monthEur : avgRate)
+          : monthTotal
       return {
         name: format(m, 'MMM'),
         income: monthIncome,
@@ -220,7 +234,19 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Estimated IRPF</CardTitle>
+            <CardTitle>IRPF (State)</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(stateTax, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>IRPF (Madrid)</CardTitle>
+          </CardHeader>
+          <CardContent>{formatCurrency(regionalTax, currency)}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>IRPF (Total)</CardTitle>
           </CardHeader>
           <CardContent>{formatCurrency(tax, currency)}</CardContent>
         </Card>
