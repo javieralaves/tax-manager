@@ -76,6 +76,7 @@ Next.js App Router setup for pages and styling implementation
 - Take-home calculations live in `src/lib/taxSummary.ts` and combine IRPF and Social Security to show effective rates and net pay.
 - IRPF is now calculated in two parts: state rates and Madrid regional rates.
   Regional logic lives in `src/lib/tax.ts` with a helper to select the region.
+- Modelo 130 quarterly calculations live in `src/lib/modelo130.ts`. It groups paid invoices by quarter, applies deductions and computes the advance due each period. The dashboard shows this table under "Quarterly Filings".
 - **External APIs**: currency rates are fetched from `https://api.exchangerate.host`.
 - **Naming conventions**: React components in `PascalCase`, utility functions in `camelCase`.
 - **Checks**: run `npm run lint` before committing if files change.

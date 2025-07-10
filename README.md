@@ -66,6 +66,10 @@ The dashboard now shows state IRPF, Madrid regional IRPF and the combined total.
 
 The dashboard also displays your total annual and monthly tax burden (IRPF + Social Security), effective tax rate and take-home income. A donut chart illustrates how income splits between taxes and what you keep. Calculations live in `src/lib/taxSummary.ts`.
 
+## Modelo 130 quarterly filings
+
+Quarterly income is now grouped to estimate IRPF advances (20% of net income after deductions). Logic lives in `src/lib/modelo130.ts` and the dashboard lists each quarter's expected payment.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

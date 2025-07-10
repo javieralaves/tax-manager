@@ -22,6 +22,11 @@ import {
 import { calculateSocialSecurityQuota } from '@/lib/socialSecurity'
 import { calculateGeneralExpenses } from '@/lib/deductions'
 import {
+  aggregateQuarterlyData,
+  calculateModelo130,
+  type Modelo130Quarter,
+} from '@/lib/modelo130'
+import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -44,7 +49,6 @@ import {
   startOfYear,
   endOfYear,
   format,
-  getQuarter,
 } from 'date-fns'
 import type { Invoice } from '@/types/invoice'
 
@@ -54,7 +58,7 @@ export default function Dashboard() {
   const [stateTax, setStateTax] = useState(0)
   const [regionalTax, setRegionalTax] = useState(0)
   const [tax, setTax] = useState(0)
-  const [quarterly, setQuarterly] = useState<{ quarter: string; income: number; tax: number }[]>([])
+  const [filings, setFilings] = useState<Modelo130Quarter[]>([])
   const [nextBracketMsg, setNextBracketMsg] = useState('')
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -130,10 +134,6 @@ export default function Dashboard() {
     }))
     setBreakdown(bd)
 
-    const advance = taxableEur * 0.2
-    setAdvancePaid(currency === 'USD' ? advance * avgRate : advance)
-    const balance = taxEur - advance
-    setFinalBalance(currency === 'USD' ? balance * avgRate : balance)
 
     const brackets = IRPF_BRACKETS.map((b) => ({
       limit: currency === 'USD' ? b.limit * avgRate : b.limit,
@@ -177,21 +177,13 @@ export default function Dashboard() {
     })
     setData(chart)
 
-    const quarters = [1, 2, 3, 4].map((q) => {
-      const incomeUsd = paid
-        .filter((inv) => getQuarter(new Date(inv.issueDate)) === q)
-        .reduce((sum, inv) => sum + Number(inv.amountUSD), 0)
-      const incomeEur = paid
-        .filter((inv) => getQuarter(new Date(inv.issueDate)) === q)
-        .reduce((sum, inv) => sum + Number(inv.amountEUR), 0)
-      const income = currency === 'USD' ? incomeUsd : incomeEur
-      return {
-        quarter: `Q${q}`,
-        income,
-        tax: income * 0.2,
-      }
-    })
-    setQuarterly(quarters)
+    const quarterData = aggregateQuarterlyData(paid, currency)
+    const filingData = calculateModelo130(quarterData)
+    setFilings(filingData)
+    const advanceTotal = filingData.reduce((sum, f) => sum + f.amountDue, 0)
+    setAdvancePaid(advanceTotal)
+    const balance = taxVal - advanceTotal
+    setFinalBalance(balance)
   }, [invoices, currency])
 
   const summary = calculateTakeHome(totalIncome, tax, ssAnnual)
@@ -345,7 +337,7 @@ export default function Dashboard() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Quarterly Summary (20% IRPF)</CardTitle>
+          <CardTitle>Quarterly Filings (Modelo 130)</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -353,15 +345,19 @@ export default function Dashboard() {
               <TableRow>
                 <TableHead>Quarter</TableHead>
                 <TableHead>Income</TableHead>
-                <TableHead>Advance Tax</TableHead>
+                <TableHead>Deductions</TableHead>
+                <TableHead>Estimated IRPF</TableHead>
+                <TableHead>Amount Due</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {quarterly.map((q) => (
+              {filings.map((q) => (
                 <TableRow key={q.quarter}>
-                  <TableCell>{q.quarter}</TableCell>
+                  <TableCell>{`Q${q.quarter}`}</TableCell>
                   <TableCell>{formatCurrency(q.income, currency)}</TableCell>
-                  <TableCell>{formatCurrency(q.tax, currency)}</TableCell>
+                  <TableCell>{formatCurrency(q.deductions, currency)}</TableCell>
+                  <TableCell>{formatCurrency(q.estimatedIrpf, currency)}</TableCell>
+                  <TableCell>{formatCurrency(q.amountDue, currency)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
