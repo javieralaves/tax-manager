@@ -83,6 +83,9 @@ Next.js App Router setup for pages and styling implementation
 
 ## UI Structure Notes
 
-- Top-level on the dashboard only show this quarter's income, general deduction, Social Security, IRPF advance (Modelo 130) and net take-home.
-- Yearly totals, bracket breakdowns and other reference data are hidden in an accordion/tab section.
+- Dashboard is split into three visual zones:
+  1. **QuarterSummary** – shows this quarter's income, general deduction, Social Security (quarter), IRPF advance and net take‑home. Can display an optional payment reminder message.
+  2. **YearlyOverview** – reference cards for total income, taxable income, IRPF (state, Madrid and total), Social Security (annual and monthly), effective tax rate and take‑home income (annual and monthly).
+  3. **AdvancedInsights** – accordion sections for quarterly filings, year‑end tax brackets and charts/visuals. Messages like "Income Until Next Bracket" and "SS Band Info" live here.
+- No metric should appear outside its assigned zone.
 - All displayed values must call helpers in `src/lib` for calculations (no inline math beyond formatting).
