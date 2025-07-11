@@ -1,16 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from '@/components/ui/table'
+
 import { formatCurrency } from '@/lib/utils'
-import { calculateTakeHome, getTaxBreakdown } from '@/lib/taxSummary'
+import { calculateTakeHome } from '@/lib/taxSummary'
 import {
   calculateStateIrpf,
   calculateRegionalIrpfMadrid,
@@ -33,23 +25,9 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-} from 'recharts'
+import QuarterSummary from './dashboard/QuarterSummary'
+import YearlyOverview from './dashboard/YearlyOverview'
+import AdvancedInsights from './dashboard/AdvancedInsights'
 import {
   eachMonthOfInterval,
   startOfYear,
@@ -75,8 +53,6 @@ export default function Dashboard() {
   const [ssMonthly, setSsMonthly] = useState(0)
   const [ssAnnual, setSsAnnual] = useState(0)
   const [ssNextMsg, setSsNextMsg] = useState('')
-  const [generalExpenses, setGeneralExpenses] = useState(0)
-  const [ssBase, setSsBase] = useState(0)
   const [taxableIncome, setTaxableIncome] = useState(0)
 
   useEffect(() => {
@@ -99,12 +75,7 @@ export default function Dashboard() {
     setTotalIncome(total)
 
     const generalEur = calculateGeneralExpenses(totalEur)
-    const generalCur = currency === 'USD' ? generalEur * avgRate : generalEur
-    setGeneralExpenses(generalCur)
-
     const ssBaseEur = totalEur - generalEur
-    const ssBaseCur = currency === 'USD' ? ssBaseEur * avgRate : ssBaseEur
-    setSsBase(ssBaseCur)
 
     const ss = calculateSocialSecurityQuota(ssBaseEur)
     const ssMonthlyCur = currency === 'USD' ? ss.monthly * avgRate : ss.monthly
@@ -196,7 +167,6 @@ export default function Dashboard() {
   const summary = calculateTakeHome(totalIncome, tax, ssAnnual)
   const net = summary.takeHomeAnnual
   const rate = summary.effectiveRate * 100
-  const taxBurdenMonthly = summary.monthlyTax
   const takeHomeMonthly = summary.takeHomeMonthly
 
   const currentQ = getQuarter(new Date())
@@ -209,7 +179,7 @@ export default function Dashboard() {
     quarterIncome - quarterGeneral - ssQuarter - quarterAdvance
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-end">
         <Select value={currency} onValueChange={(v) => setCurrency(v as 'USD' | 'EUR')}>
           <SelectTrigger className="w-24">
@@ -221,240 +191,41 @@ export default function Dashboard() {
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>This Quarter Income</CardTitle>
-          </CardHeader>
-          <CardContent>{formatCurrency(quarterIncome, currency)}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>General Deduction</CardTitle>
-          </CardHeader>
-          <CardContent>{formatCurrency(quarterGeneral, currency)}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Social Security</CardTitle>
-          </CardHeader>
-          <CardContent>{formatCurrency(ssQuarter, currency)}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>IRPF Advance</CardTitle>
-          </CardHeader>
-          <CardContent>{formatCurrency(quarterAdvance, currency)}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Net Take-Home</CardTitle>
-          </CardHeader>
-          <CardContent>{formatCurrency(quarterNet, currency)}</CardContent>
-        </Card>
-      </div>
-      <Accordion type="single" collapsible className="w-full space-y-4">
-        <AccordionItem value="yearly">
-          <AccordionTrigger className="text-lg">Yearly Breakdown</AccordionTrigger>
-          <AccordionContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Total Income</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(totalIncome, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>General Expenses (5%)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(generalExpenses, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>SS Base Income</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(ssBase, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Taxable Income</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(taxableIncome, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>IRPF (State)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(stateTax, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>IRPF (Madrid)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(regionalTax, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>IRPF (Total)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(tax, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Effective Tax Rate</CardTitle>
-                </CardHeader>
-                <CardContent>{rate.toFixed(2)}%</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>SS Monthly Quota</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(ssMonthly, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Annual SS Total</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(ssAnnual, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Total Tax Burden (Annual)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(summary.totalTax, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Total Tax Burden (Monthly)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(taxBurdenMonthly, currency)}</CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Take-Home Income (Monthly)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(takeHomeMonthly, currency)}</CardContent>
-              </Card>
-              <Card className="sm:col-span-3">
-                <CardHeader>
-                  <CardTitle>Income Until Next Bracket</CardTitle>
-                </CardHeader>
-                <CardContent>{nextBracketMsg}</CardContent>
-              </Card>
-              <Card className="sm:col-span-3">
-                <CardHeader>
-                  <CardTitle>SS Band Info</CardTitle>
-                </CardHeader>
-                <CardContent>{ssNextMsg}</CardContent>
-              </Card>
-              <Card className="sm:col-span-3">
-                <CardHeader>
-                  <CardTitle>Take-Home Income (Annual)</CardTitle>
-                </CardHeader>
-                <CardContent>{formatCurrency(net, currency)}</CardContent>
-              </Card>
-            </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value: number) => formatCurrency(value, currency)} />
-                    <Bar dataKey="income" fill="#8884d8" name="Income" />
-                    <Bar dataKey="tax" fill="#82ca9d" name="Tax" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Tax vs Take-Home</CardTitle>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Tooltip formatter={(value: number) => formatCurrency(value as number, currency)} />
-                    <Pie data={getTaxBreakdown(totalIncome, tax, ssAnnual)} dataKey="value" nameKey="name" outerRadius={80} fill="#8884d8" label />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Quarterly Filings (Modelo 130)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Quarter</TableHead>
-                      <TableHead>Income</TableHead>
-                      <TableHead>Deductions</TableHead>
-                      <TableHead>Estimated IRPF</TableHead>
-                      <TableHead>Amount Due</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filings.map((q) => (
-                      <TableRow key={q.quarter}>
-                        <TableCell>{`Q${q.quarter}`}</TableCell>
-                        <TableCell>{formatCurrency(q.income, currency)}</TableCell>
-                        <TableCell>{formatCurrency(q.deductions, currency)}</TableCell>
-                        <TableCell>{formatCurrency(q.estimatedIrpf, currency)}</TableCell>
-                        <TableCell>{formatCurrency(q.amountDue, currency)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Year-End Tax Bracket Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Bracket</TableHead>
-                      <TableHead>Taxable</TableHead>
-                      <TableHead>Rate</TableHead>
-                      <TableHead>Tax</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {breakdown.map((b, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          {`${formatCurrency(b.from, currency)} - ${formatCurrency(b.to, currency)}`}
-                        </TableCell>
-                        <TableCell>{formatCurrency(b.taxable, currency)}</TableCell>
-                        <TableCell>{(b.rate * 100).toFixed(0)}%</TableCell>
-                        <TableCell>{formatCurrency(b.tax, currency)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 space-y-1 text-sm">
-                  <p>Final IRPF Liability: {formatCurrency(tax, currency)}</p>
-                  <p>Quarterly Advances Paid: {formatCurrency(advancePaid, currency)}</p>
-                  <p className="font-semibold">
-                    {finalBalance >= 0
-                      ? `Balance Due: ${formatCurrency(finalBalance, currency)}`
-                      : `Refund: ${formatCurrency(Math.abs(finalBalance), currency)}`}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <QuarterSummary
+        currency={currency}
+        quarterIncome={quarterIncome}
+        quarterGeneral={quarterGeneral}
+        ssQuarter={ssQuarter}
+        quarterAdvance={quarterAdvance}
+        quarterNet={quarterNet}
+        nextPaymentMessage={`Your estimated Modelo 130 payment is ${formatCurrency(quarterAdvance, currency)} due by July 20.`}
+      />
+      <YearlyOverview
+        currency={currency}
+        totalIncome={totalIncome}
+        taxableIncome={taxableIncome}
+        stateTax={stateTax}
+        regionalTax={regionalTax}
+        tax={tax}
+        ssAnnual={ssAnnual}
+        ssMonthly={ssMonthly}
+        effectiveRate={rate}
+        takeHomeAnnual={net}
+        takeHomeMonthly={takeHomeMonthly}
+      />
+      <AdvancedInsights
+        currency={currency}
+        filings={filings}
+        breakdown={breakdown}
+        data={data}
+        tax={tax}
+        ssAnnual={ssAnnual}
+        advancePaid={advancePaid}
+        finalBalance={finalBalance}
+        nextBracketMsg={nextBracketMsg}
+        ssNextMsg={ssNextMsg}
+        totalIncome={totalIncome}
+      />
     </div>
   )
 }
